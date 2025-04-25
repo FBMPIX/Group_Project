@@ -1,14 +1,207 @@
- <!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game</title>
+    <title> Word Search Puzzle</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap'); /* modern sans-serif */
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg id="stripes" fill="%23e0f7fa" fill-opacity="0.4" fill-rule="nonzero"%3E%3Cpath d="M0 0h60v60H0V0z"/%3E%3Cpath d="M0 5h60v5H0zM0 20h60v5H0zM0 35h60v5H0zM0 50h60v5H0z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E'); /* Subtle striped background */
+            color: #333;
+            margin: 0;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            color: #2979ff; /* Bright blue */
+            font-size: 48px;
+            margin-bottom: 40px;
+            text-shadow: 2px 2px #b3e5fc;
+            letter-spacing: 1.5px;
+        }
+
+        .form-container {
+            background-color: #fff;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 95%;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border: 3px solid #64b5f6; /* Light blue border */
+            position: relative;
+            overflow: hidden; /* Clip the corner accents */
+        }
+
+        /* Corner accents */
+        .form-container::before,
+        .form-container::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: #ffb300; /* Amber accent */
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        .form-container::before {
+            top: -30px;
+            left: -30px;
+        }
+
+        .form-container::after {
+            bottom: -30px;
+            right: -30px;
+        }
+
+        label {
+            display: block;
+            margin-top: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e88e5; /* Blue accent */
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: calc(100% - 20px);
+            padding: 12px;
+            margin-top: 10px;
+            border: 2px solid #90caf9; /* Light blue border */
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            background-color: #e3f2fd; /* Very light blue */
+            color: #333;
+        }
+
+        small {
+            font-size: 14px;
+            color: #555;
+            display: block;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        .options-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .options-group label {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e88e5;
+        }
+
+        /* Styled checkboxes */
+        .options-group input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #90caf9;
+            border-radius: 6px;
+            background-color: #fff;
+            cursor: pointer;
+            position: relative;
+            outline: none;
+        }
+
+        .options-group input[type="checkbox"]:checked::before {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #2979ff;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        input[type="submit"] {
+            margin-top: 40px;
+            background-color: #ff9800; /* Orange */
+            color: #fff;
+            padding: 16px 32px;
+            border: none;
+            font-size: 20px;
+            font-family: 'Poppins', sans-serif;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25);
+            transition: background-color 0.3s ease, transform 0.2s ease-in-out;
+            letter-spacing: 1px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #f57c00; /* Darker orange */
+            transform: scale(1.08);
+        }
+    </style>
 </head>
 <body>
-  <h1> Game name </h1>
-   <form action="../cgi-bin/CPS3525/project3" method="get" enctype="multipart/form-data">
-   
-   </form>
+    <h1>Word Search <span style="color: #ffca28;">Puzzle</span></h1>
+    <div class="form-container">
+        <form method="get" action="../cgi-bin/CPS3525/project3">
+			<label for="customWords">Upload Custom Word List (Optional):</label>
+			<input type="file" id="customWords" name="customWords" accept=".txt">
+			<small>Upload a plain text file with one word per line.</small>
+
+			<label for="theme">Or Select a Theme:</label>
+			<select id="theme" name="theme">
+				<option value="animals">🐾 Animals</option>
+				<option value="fruits">🍉 Fruits</option>
+				<option value="programming">✈️ Locations</option>
+				<option value="custom">📄 Use Custom List</option>
+			</select>
+            <small id="theme-help">Select the theme for your word discovery adventure!</small>
+
+            <label for="rows">Grid Height:</label>
+            <input type="number" id="rows" name="rows" min="5" max="30" value="10" required aria-describedby="rows-help">
+            <small id="rows-help">How tall should your word grid be?</small>
+
+            <label for="cols">Grid Width:</label>
+            <input type="number" id="cols" name="cols" min="5" max="30" value="10" required aria-describedby="cols-help">
+            <small id="cols-help">How wide should your word grid be?</small>
+
+            <label for="difficulty">Challenge Level:</label>
+            <select id="difficulty" name="difficulty" aria-describedby="difficulty-help">
+                <option value="easy">Easy 🟢 Find Them All!</option>
+                <option value="medium">Medium 🟡 A Tricky Search</option>
+                <option value="hard">Hard 🔴 Expert Word Finder</option>
+            </select>
+            <small id="difficulty-help">Choose the difficulty of your word hunt!</small>
+
+            <label class="section-title">Word Placement Options:</label>
+            <div class="options-group">
+                <label>
+					<input type="checkbox" id="vertical" name="vertical" value="true">
+                    Include Vertical Words
+                </label>
+                <label>
+                    <input type="checkbox" id="backwards" name="backwards" value="true">
+                    Include Backwards Words Too
+                </label>
+            </div>
+
+            <input type="submit" value="Start the Word Search!">
+        </form>
+    </div>
 </body>
 </html>
