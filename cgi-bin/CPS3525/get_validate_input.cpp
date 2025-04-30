@@ -1,4 +1,3 @@
-// get_validate_input.cpp
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -6,9 +5,7 @@
 #include <vector>
 #include <cctype>
 #include <fstream>
-
-//moved struct to header file
-//#include "get_validate_input.h"
+#include "get_validate_input.h"
 
 UserInput readPatternFromFile(std::istream& inputFile) {
     UserInput input;
