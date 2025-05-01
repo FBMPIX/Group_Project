@@ -2,23 +2,32 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <cstdlib>
+#include <stdexcept>
+
+#include "cgicc/Cgicc.h"
+#include "cgicc/HTTPHTMLHeader.h"
+#include "cgicc/HTMLClasses.h"
+#include "cgicc/FormFile.h"
+
 #include "get_validate_input.h"
 
 using namespace std;
+using namespace cgicc;
 
-// Function to trim leading and trailing whitespace from a string
 string get_validate_input::trim(const string& str) {
-    size_t first = str.find_first_not_of(' ');
+    const char* whitespace = " \t\n\r\f\v";
+    size_t first = str.find_first_not_of(whitespace);
     if (string::npos == first) {
-        return str;
+        return "";
     }
-    size_t last = str.find_last_not_of(' ');
+    size_t last = str.find_last_not_of(whitespace);
     return str.substr(first, (last - first + 1));
 }
 
-// Function to validate if a string contains only uppercase letters
 bool get_validate_input::is_uppercase(const string& str) {
+    if (str.empty()) {
+        return false;
+    }
     for (char c : str) {
         if (c < 'A' || c > 'Z') {
             return false;
@@ -27,72 +36,100 @@ bool get_validate_input::is_uppercase(const string& str) {
     return true;
 }
 
-// Function to get form data and validate it
 bool get_validate_input::get_form_data(vector<string>& pattern, string& guess, string& type) {
-    char* post_data = getenv("CONTENT_LENGTH");
-    if (post_data == nullptr || atoi(post_data) <= 0) {
-        cerr << "Content length is not valid." << endl;
-        return false;
-    }
+    try {
 
-    long content_length = atoi(post_data);
-    vector<char> buffer(content_length);
-    cin.read(buffer.data(), content_length);
-    string post_string(buffer.begin(), buffer.end());
+        Cgicc cgi;
 
-    // Basic parsing of the multipart/form-data (simplified)
-    string file_content;
-    size_t file_content_start = post_string.find("\r\n\r\n");
-    if (file_content_start != string::npos) file_content_start += 4;
-    size_t file_content_end = post_string.find("\r\n------", file_content_start);
-    if (file_content_start != string::npos && file_content_end != string::npos) {
-        file_content = post_string.substr(file_content_start, file_content_end - file_content_start);
-        stringstream ss(file_content);
-        string line;
-        int rows = 0;
-        int cols = 0;
-        if (getline(ss, line)) {
-            stringstream ss_dims(line);
-            if (!(ss_dims >> rows >> cols)) return false;
+        const_form_iterator guess_iter = cgi.getElement("guess_char");
+        if (guess_iter == cgi.getElements().end() || guess_iter->getValue().empty()) {
+            cout << "Error: Form field 'guess_char' not found or empty." << endl;
+            return false;
         }
-        while (getline(ss, line)) {
-            string trimmed_line = trim(line);
-            if (trimmed_line.length() == cols && is_uppercase(trimmed_line)) {
-                pattern.push_back(trimmed_line);
-            } else if (!trimmed_line.empty()) {
-                cerr << "Invalid pattern line: " << trimmed_line << endl;
+        guess = guess_iter->getValue();
+
+        if (guess.length() != 1 || !is_uppercase(guess)) {
+            cout << "Error: Invalid guess character submitted: '" << guess << "'. Expected single uppercase letter." << endl;
+            return false;
+        }
+
+        const_form_iterator type_iter = cgi.getElement("guess_type");
+        if (type_iter == cgi.getElements().end() || type_iter->getValue().empty()) {
+            cout << "Error: Form field 'guess_type' not found or empty." << endl;
+            return false;
+        }
+        type = type_iter->getValue();
+
+        if (type != "maximum" && type != "minimum") {
+            cout << "Error: Invalid guess type submitted: '" << type << "'. Expected 'maximum' or 'minimum'." << endl;
+            return false;
+        }
+
+        file_iterator fileIter = cgi.getFile("pattern_file");
+
+
+        if (fileIter == cgi.getFiles().end()) {
+            cout << "Error: File input field 'pattern_file' not found in the submitted form data." << endl;
+            return false;
+        }
+
+        const FormFile& fileRef = *fileIter;
+
+        if (fileRef.getDataLength() == 0) {
+            cout << "Error: Uploaded file 'pattern_file' is empty." << endl;
+            return false;
+        }
+
+        stringstream ss_file_content(fileRef.getData());
+        string line;
+
+        size_t rows = 0;
+        size_t cols = 0;
+
+
+        if (getline(ss_file_content, line)) {
+            stringstream ss_dims(line);
+            if (!(ss_dims >> rows >> cols) || rows == 0 || cols == 0) {
+                cout << "Error: Could not parse valid positive rows and columns from the first line of the file: '" << line << "'" << endl;
                 return false;
             }
+        } else {
+            cout << "Error: Uploaded file content seems empty or invalid after checking size (could not read first line)." << endl;
+            return false;
         }
-        if (pattern.size() != rows) return false;
-    } else {
-        cerr << "Could not find file content in POST data." << endl;
-        return false;
-    }
 
-    size_t guess_start = post_string.find("name=\"guess_char\"\r\n\r\n") + 20;
-    size_t guess_end = post_string.find("\r\n------", guess_start);
-    if (guess_start == string::npos || guess_end == string::npos) {
-        cerr << "Could not find guess_char in POST data." << endl;
-        return false;
-    }
-    guess = trim(post_string.substr(guess_start, guess_end - guess_start));
-    if (guess.length() != 1 || !is_uppercase(guess)) {
-        cerr << "Invalid guess character." << endl;
-        return false;
-    }
+        pattern.clear();
+        size_t actual_rows_read = 0;
 
-    size_t type_start = post_string.find("name=\"guess_type\"\r\n\r\n") + 18;
-    size_t type_end = post_string.find("\r\n------", type_start);
-    if (type_start == string::npos || type_end == string::npos) {
-        cerr << "Could not find guess_type in POST data." << endl;
-        return false;
-    }
-    type = trim(post_string.substr(type_start, type_end - type_start));
-    if (type != "maximum" && type != "minimum") {
-        cerr << "Invalid guess type." << endl;
-        return false;
-    }
+        while (getline(ss_file_content, line)) {
+            string trimmed_line = trim(line);
 
-    return true;
+            if (!trimmed_line.empty()) {
+
+                if (trimmed_line.length() == cols && is_uppercase(trimmed_line)) {
+                    pattern.push_back(trimmed_line);
+                    actual_rows_read++;
+                } else {
+                    cout << "Error: Invalid pattern line format or content found. Line: '" << trimmed_line << "'. Expected " << cols << " uppercase characters." << endl;
+                    return false;
+                }
+            }
+        }
+
+        if (actual_rows_read != rows) {
+            cout << "Error: Number of valid pattern rows read (" << actual_rows_read
+                 << ") does not match the expected number of rows (" << rows
+                 << ") specified in the first line." << endl;
+            return false;
+        }
+
+        return true;
+
+    } catch (const exception& e) {
+        cout << "Exception caught during form data processing: " << e.what() << endl;
+        return false;
+    } catch (...) {
+        cout << "Unknown exception caught during form data processing." << endl;
+        return false;
+    }
 }
