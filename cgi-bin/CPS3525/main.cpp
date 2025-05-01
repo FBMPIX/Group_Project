@@ -1,48 +1,53 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
+#include <sstream>
+#include <cstdlib>
+#include <algorithm>
+#include "generate_html.h"
 #include "get_validate_input.h"
-#include "game_function.h"
-#include "style.h" // For HTML generation
+#include "pattern_analyzer.h"
+
+using namespace std;
 
 int main() {
-    // Set the content type for HTML output
-    std::cout << "Content-Type: text/html\n\n";
+    cout << generate_html::generate_html_header("Pattern Game Result");
 
-    // Get and validate user input
-    UserInput userInput = getAndValidateInput();
+    vector<string> pattern;
+    string guess;
+    string type;
 
-    // Check for errors during input validation
-    if (userInput.error) {
-        generateErrorPage(userInput.errorMessage); // Use style.cpp for error page
-        return 0;
-    }
-
-    // The pattern is now ALWAYS read from the uploaded file.  The check is done in get_validate_input.cpp
-    std::vector<std::vector<char>> pattern = userInput.pattern;
-
-    // Analyze the pattern
-    int charCounts[26];
-    countCharacterOccurrences(pattern, charCounts); // Use game_function.cpp
-    char actualChar;
-    if (userInput.guessType == "max") {
-        actualChar = findMaxCountCharacter(charCounts); // Use game_function.cpp
+    if (!get_validate_input::get_form_data(pattern, guess, type)) {
+        cout << generate_html::generate_heading("Error: Invalid Input", 2);
+        cout << generate_html::generate_paragraph("There was an issue processing the uploaded file or the form data. Please check the file format and your input.");
     } else {
-        actualChar = findMinCountCharacter(charCounts); // Use game_function.cpp
+        map<char, int> char_counts = pattern_analyzer::count_characters(pattern);
+        vector<char> max_chars = pattern_analyzer::find_max_char(char_counts);
+        vector<char> min_chars = pattern_analyzer::find_min_char(char_counts);
+        bool correct = false;
+        vector<char> correct_chars;
+
+         if (type == "maximum") {
+            if (find(max_chars.begin(), max_chars.end(), guess[0]) != max_chars.end()) {
+                correct = true;
+                correct_chars = max_chars;
+            }
+        } else if (type == "minimum") {
+             if (find(min_chars.begin(), min_chars.end(), guess[0]) != min_chars.end()) {
+                correct = true;
+                correct_chars = min_chars;
+            }
+        }
+
+        cout << generate_html::generate_pattern_table(pattern);
+        cout << generate_html::generate_heading("Pattern Analysis and Guess Result", 2);
+        cout << generate_html::generate_paragraph("Your guess: " + guess + " for " + type);
+        cout << generate_html::generate_character_counts(char_counts);
+        cout << generate_html::generate_result_message(correct, guess, type, correct_chars, char_counts);
     }
 
-    // Generate the HTML response using functions from style.cpp
-    generateHTMLHeader();
-    generateGameTitle();
-    generatePatternDisplay(pattern); // Use style.cpp for pattern display
-    generateGuessResult(userInput.guessChar, actualChar, userInput.guessType); // Use style.cpp
-    if (userInput.showPattern) {
-        generatePatternDisplay(pattern); //show pattern
-    }
-    if (userInput.showCounts) {
-        generateCharacterCounts(charCounts); //show counts
-    }
-    generateHTMLFooter();
+    cout << generate_html::generate_html_footer();
 
     return 0;
 }
