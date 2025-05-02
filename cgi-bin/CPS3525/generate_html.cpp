@@ -1,12 +1,12 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <map>
-#include "generate_html.h"
+// #include <map> // Removed map include as generate_character_counts is removed
+#include "generate_html.h" // Assuming this header declares the generate_html class and its functions
 
 using namespace std;
 
-// Function to generate the basic HTML header
+// Function to generate the basic HTML header for the response page
 string generate_html::generate_html_header(const string& title) {
     return "<!DOCTYPE html>\n"
            "<html lang=\"en\">\n"
@@ -22,41 +22,43 @@ string generate_html::generate_html_header(const string& title) {
            "        pre, .pattern-table { background-color: #eee; padding: 10px; border-radius: 4px; overflow-x: auto; }\n"
            "        .pattern-table { border-collapse: collapse; margin-bottom: 15px; }\n"
            "        .pattern-table td { border: 1px solid #ccc; padding: 5px; text-align: center; min-width: 20px; }\n"
+           "        .correct { color: green; font-weight: bold; }\n" // Style for correct guess message
+           "        .incorrect { color: red; font-weight: bold; }\n" // Style for incorrect guess message
            "    </style>\n"
            "</head>\n"
            "<body>\n"
            "    <div class=\"container\">\n";
 }
 
-// Function to generate the basic HTML footer
+// Function to generate the basic HTML footer to close the document structure
 string generate_html::generate_html_footer() {
     return "    </div>\n"
            "</body>\n"
            "</html>";
 }
 
-// Function to generate a heading
+// Function to generate an HTML heading tag (h2 or h3)
 string generate_html::generate_heading(const string& text, int level) {
     if (level == 2) return "<h2>" + text + "</h2>\n";
     if (level == 3) return "<h3>" + text + "</h3>\n";
-    return "<h2>" + text + "</h2>\n"; // Default to h2
+    return "<h2>" + text + "</h2>\n"; // Default to h2 if level is not 2 or 3
 }
 
-// Function to generate a paragraph
+// Function to generate an HTML paragraph tag
 string generate_html::generate_paragraph(const string& text) {
     return "<p>" + text + "</p>\n";
 }
 
-// Function to generate the 2D pattern as an HTML table
+// Function to generate the 2D pattern grid as an HTML table for display
 string generate_html::generate_pattern_table(const vector<string>& pattern) {
     if (pattern.empty()) {
-        return "<p>No pattern to display.</p>\n";
+        return "<p>No pattern grid to display.</p>\n"; // Updated text
     }
-    string table = "<p>Original Pattern:</p>\n<table class=\"pattern-table\">\n";
+    string table = "<table class=\"pattern-table\">\n"; // Removed paragraph tag here, will add label in main
     for (const auto& row : pattern) {
         table += "<tr>\n";
         for (char c : row) {
-            table += "<td>" + string(1, c) + "</td>\n";    // Each character in its own cell
+            table += "<td>" + string(1, c) + "</td>\n";    // Each character in its own table cell
         }
         table += "</tr>\n";
     }
@@ -64,50 +66,27 @@ string generate_html::generate_pattern_table(const vector<string>& pattern) {
     return table;
 }
 
-// Function to generate preformatted text (for character counts)
-string generate_html::generate_character_counts(const map<char, int>& counts) {
-    string output = "<p>Character counts:</p><pre>";
-    for (const auto& pair : counts) {
-        output += pair.first;
-        output += ": ";
-        output += to_string(pair.second);
-        output += "<br>";
-    }
-    output += "</pre>\n";
-    return output;
-}
+// Removed generate_character_counts function as it's not needed for the core word search result display
 
-// Function to generate the result message
-string generate_html::generate_result_message(bool correct, const string& guess, string& type, const vector<char>& correct_chars, const map<char, int>& counts) {
+// Function to generate the result message for the word search game
+// This function compares the guessed occurrence count with the actual count and generates corresponding HTML
+string generate_html::generate_result_message(bool correct, const string& guessed_pattern, int guessed_occurrence, int actual_occurrence_count) {
     string message;
+
+    // Display the user's guess for the pattern and its occurrences
+    message += generate_paragraph("Your guess: " + to_string(guessed_occurrence) + " occurrences of \"" + guessed_pattern + "\"");
+
+    // Display the actual count of the pattern found in the grid
+    message += generate_paragraph("Actual occurrences found: " + to_string(actual_occurrence_count));
+
+    // Generate the final result message based on whether the guess was correct
     if (correct) {
-        message += "<h3>Congratulations! Your guess for the " + type + " count character is correct.</h3>\n";
-        message += "<p>The character(s) with the " + type + " count (";
-        if (!correct_chars.empty()) {
-            message += correct_chars[0];
-            message += " - ";
-            message += to_string(counts.at(correct_chars[0]));
-        }
-        message += ") is/are: ";
-        for (size_t i = 0; i < correct_chars.size(); ++i) {
-            message += correct_chars[i];
-            message += (i < correct_chars.size() - 1 ? ", " : "");
-        }
-        message += ".</p>\n";
+        message += generate_heading("Congratulations! Your guess is correct.", 3);
+        message += generate_paragraph("<span class=\"correct\">The pattern \"" + guessed_pattern + "\" was found exactly " + to_string(actual_occurrence_count) + " times.</span>");
     } else {
-        message += "<h3>Sorry, your guess for the " + type + " count character is incorrect.</h3>\n";
-        message += "<p>The character(s) with the " + type + " count (";
-         if (!correct_chars.empty()) {
-            message += correct_chars[0];
-            message += " - ";
-             message += to_string(counts.at(correct_chars[0]));
-        }
-        message += ") is/are: ";
-        for (size_t i = 0; i < correct_chars.size(); ++i) {
-            message += correct_chars[i];
-            message += (i < correct_chars.size() - 1 ? ", " : "");
-        }
-        message += ".</p>\n";
+        message += generate_heading("Sorry, your guess is incorrect.", 3);
+        message += generate_paragraph("<span class=\"incorrect\">You guessed " + to_string(guessed_occurrence) + " occurrences, but the pattern \"" + guessed_pattern + "\" was found " + to_string(actual_occurrence_count) + " times.</span>");
     }
+
     return message;
 }

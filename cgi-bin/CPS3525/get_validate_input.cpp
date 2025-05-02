@@ -38,40 +38,72 @@ bool get_validate_input::is_uppercase(const string& str) {
     return true;
 }
 
-// Extracts and validates form data including the guessed character, guess type, and uploaded pattern file
-bool get_validate_input::get_form_data(vector<string>& pattern, string& guess, string& type) {
+// Extracts and validates form data including the uploaded pattern file,
+// the guessed pattern string, the guessed occurrences count, and the convert option.
+// Variable names aligned with HTML form field names where appropriate.
+bool get_validate_input::get_form_data(vector<string>& pattern_grid_content, string& guessed_pattern, int& guessed_occurrences, bool& convertToNumber) {
     try {
-
         Cgicc cgi; // Create CGI object to access form data
 
-        // Retrieve the "guess_char" field from the form
-        const_form_iterator guess_iter = cgi.getElement("guess_char");
-        if (guess_iter == cgi.getElements().end() || guess_iter->getValue().empty()) {
-            cout << "Error: Form field 'guess_char' not found or empty." << endl;
+        // Retrieve the "guess_pattern" field from the form
+        const_form_iterator guess_pattern_iter = cgi.getElement("guess_pattern");
+        if (guess_pattern_iter == cgi.getElements().end() || guess_pattern_iter->getValue().empty()) {
+            cout << "Error: Form field 'guess_pattern' not found or empty." << endl;
             return false;
         }
-        guess = guess_iter->getValue();
+        guessed_pattern = guess_pattern_iter->getValue(); // Assign value to the updated variable name
 
-        // Validate that the guess is a single uppercase letter
-        if (guess.length() != 1 || !is_uppercase(guess)) {
-            cout << "Error: Invalid guess character submitted: '" << guess << "'. Expected single uppercase letter." << endl;
+        // Validate the guessed pattern string (e.g., check if it's empty or contains invalid characters)
+        // Assuming only uppercase letters are allowed in the pattern string based on previous logic.
+        if (guessed_pattern.empty() || !is_uppercase(guessed_pattern)) { // Assuming is_uppercase can handle strings > 1 char
+            cout << "Error: Invalid guess pattern submitted: '" << guessed_pattern << "'. Expected one or more uppercase letters." << endl;
             return false;
         }
 
-         // Retrieve the "guess_type" field from the form
-        const_form_iterator type_iter = cgi.getElement("guess_type");
-        if (type_iter == cgi.getElements().end() || type_iter->getValue().empty()) {
-            cout << "Error: Form field 'guess_type' not found or empty." << endl;
+
+        // Retrieve the "guess_occurrences" field from the form
+        const_form_iterator guess_occurrences_iter = cgi.getElement("guess_occurrences");
+        if (guess_occurrences_iter == cgi.getElements().end() || guess_occurrences_iter->getValue().empty()) {
+            cout << "Error: Form field 'guess_occurrences' not found or empty." << endl;
             return false;
         }
-        type = type_iter->getValue();
-        
-         // Validate that the guess type is either "maximum" or "minimum"
-        if (type != "maximum" && type != "minimum") {
-            cout << "Error: Invalid guess type submitted: '" << type << "'. Expected 'maximum' or 'minimum'." << endl;
+        string occurrence_str = guess_occurrences_iter->getValue(); // Get string value from the field
+
+        // Convert the string value to an integer and validate
+        try {
+            size_t processed_chars;
+            guessed_occurrences = stoi(occurrence_str, &processed_chars); // Convert and assign to updated variable name
+
+            // Check if the entire string was consumed by stoi, ensuring no trailing non-digit characters
+            if (processed_chars != occurrence_str.length()) {
+                 cout << "Error: Invalid guess occurrences submitted: '" << occurrence_str << "'. Expected an integer." << endl;
+                 return false;
+            }
+
+            // Optional: Add a check for non-negative occurrence, as occurrences are typically non-negative
+            if (guessed_occurrences < 0) {
+                 cout << "Error: Invalid guess occurrences submitted: '" << occurrence_str << "'. Expected a non-negative integer." << endl;
+                 return false;
+            }
+
+        } catch (const invalid_argument& ia) {
+            cout << "Error: Invalid guess occurrences submitted: '" << occurrence_str << "'. Expected an integer." << endl;
+            return false;
+        } catch (const out_of_range& oor) {
+            cout << "Error: Guess occurrences value out of integer range: '" << occurrence_str << "'" << endl;
             return false;
         }
-        // Access the uploaded file from the form
+
+        // retrieve the convertToNum radio button
+        // Assuming the radio button's name is "conversion" based on your HTML
+        const_form_iterator conversion_iter = cgi.getElement("conversion"); // Updated iterator name and declared here
+        if (conversion_iter != cgi.getElements().end() && conversion_iter->getValue() == "convert") {
+            convertToNumber = true;
+        } else {
+            convertToNumber = false;
+        }
+
+        // Access the uploaded file from the form using its name "pattern_file"
         file_iterator fileIter = cgi.getFile("pattern_file");
         if (fileIter == cgi.getFiles().end()) {
             cout << "Error: File input field 'pattern_file' not found in the submitted form data." << endl;
@@ -103,7 +135,7 @@ bool get_validate_input::get_form_data(vector<string>& pattern, string& guess, s
             return false;
         }
 
-        pattern.clear();
+        pattern_grid_content.clear(); // Clear the vector to store new content
         size_t actual_rows_read = 0;
         // Read and validate each line of the pattern data
         while (getline(ss_file_content, line)) {
@@ -112,7 +144,7 @@ bool get_validate_input::get_form_data(vector<string>& pattern, string& guess, s
             if (!trimmed_line.empty()) {
             // Each line must have the correct number of columns and be uppercase
                 if (trimmed_line.length() == cols && is_uppercase(trimmed_line)) {
-                    pattern.push_back(trimmed_line);
+                    pattern_grid_content.push_back(trimmed_line); // Store line in the updated variable name
                     actual_rows_read++;
                 } else {
                     cout << "Error: Invalid pattern line format or content found. Line: '" << trimmed_line << "'. Expected " << cols << " uppercase characters." << endl;

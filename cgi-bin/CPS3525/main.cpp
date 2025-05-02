@@ -1,13 +1,12 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <map>
+// #include <map> // Removed map include as character counts are no longer central to the core game logic
 #include <sstream>
-
-#include <algorithm>
-#include "generate_html.h"
-#include "get_validate_input.h"
-#include "pattern_analyzer.h"
+#include <algorithm> // Still potentially useful
+#include "generate_html.h" // For generating HTML output
+#include "get_validate_input.h" // For getting and validating form data
+#include "pattern_analyzer.h" // For analyzing the pattern grid (counting occurrences and numbering)
 
 #include <cgicc/CgiDefs.h>
 #include <cgicc/Cgicc.h>
@@ -20,51 +19,56 @@ using namespace std;
 int main() {
     // Output the HTTP response header to indicate an HTML page is being returned
     cout << "Content-Type: text/html\r\n\r\n";
+
     // Output the beginning of the HTML document with a page title
-    cout << generate_html::generate_html_header("Pattern Game Result");
+    cout << generate_html::generate_html_header("Word Search Game Result"); // Updated title
+
     // Variables to store extracted form and file data
-    vector<string> pattern;
-    string guess;
-    string type;
+    vector<string> pattern_grid_content; // Stores the original pattern grid from the file
+    string guessed_pattern; // Stores the user's guessed pattern string
+    int guessed_occurrence; // Stores the user's guessed number of occurrences
+    bool convertToNumber; // Stores the state of the 'convert to numbers' checkbox
+
     // Attempt to read and validate the form and file data
-    if (!get_validate_input::get_form_data(pattern, guess, type)) {
+    // The get_form_data function populates pattern_grid_content, guessed_pattern, guessed_occurrence, and convertToNumber
+    if (!get_validate_input::get_form_data(pattern_grid_content, guessed_pattern, guessed_occurrence, convertToNumber)) {
         // If input validation failed, show an error message
         cout << generate_html::generate_heading("Error: Invalid Input", 2);
         cout << generate_html::generate_paragraph("There was an issue processing the uploaded file or the form data. Please check the file format and your input. Check the server error log for more details.");
+        // Note: More specific error messages are generated within get_validate_input::get_form_data
     } else {
-        // Analyze the uploaded pattern data to count character frequencies
-        std::map<char, int> char_counts = pattern_analyzer::count_characters(pattern);
-        // Identify characters with maximum and minimum frequency
-        vector<char> max_chars = pattern_analyzer::find_max_char(char_counts);
-        vector<char> min_chars = pattern_analyzer::find_min_char(char_counts);
-        // Determine if the user's guess is correct
-        bool correct = false;
-        vector<char> correct_chars;
+        // --- Game Logic: Word Search ---
 
-        if (type == "maximum") {
-            // Check if guess matches one of the characters with max frequency
-            if (!max_chars.empty() && find(max_chars.begin(), max_chars.end(), guess[0]) != max_chars.end()) {
-                correct = true;
-            }
-             correct_chars = max_chars;
-        } else if (type == "minimum") {
-            // Check if guess matches one of the characters with min frequency
-             if (!min_chars.empty() && find(min_chars.begin(), min_chars.end(), guess[0]) != min_chars.end()) {
-                correct = true;
-            }
-             correct_chars = min_chars;
+        // Count the actual non-overlapping occurrences of the guessed pattern in the original grid
+        int actual_occurrence_count = pattern_analyzer::count_pattern_occurrences(pattern_grid_content, guessed_pattern);
+
+        // Determine if the user's guess is correct by comparing guessed and actual occurrences
+        bool correct = (guessed_occurrence == actual_occurrence_count);
+
+        // --- Output Results ---
+
+        // Always display the original pattern grid
+        cout << generate_html::generate_paragraph("Original Pattern Grid:"); // Add label for the original grid
+        cout << generate_html::generate_pattern_table(pattern_grid_content);
+
+        // If convertToNumber is true, generate and display the numbered grid
+        if (convertToNumber) {
+            // Generate the grid with occurrences replaced by numbers using the new function
+            vector<string> numbered_grid = pattern_analyzer::generate_numbered_grid(pattern_grid_content, guessed_pattern);
+            // Display the numbered grid
+            cout << generate_html::generate_paragraph("Pattern Grid with Occurrences Numbered:"); // Add label for the numbered grid
+            cout << generate_html::generate_pattern_table(numbered_grid);
         }
 
-        // Display the uploaded pattern in a table format
-        cout << generate_html::generate_pattern_table(pattern);
         // Show analysis and the user's guess result
-        cout << generate_html::generate_heading("Pattern Analysis and Guess Result", 2);
-        cout << generate_html::generate_paragraph("Your guess: " + guess + " for " + type);
-         // Display frequency of each character in the pattern
-        cout << generate_html::generate_character_counts(char_counts);
-        // Display whether the guess was correct and the actual correct characters
-        cout << generate_html::generate_result_message(correct, guess, type, correct_chars, char_counts);
+        cout << generate_html::generate_heading("Word Search Analysis and Guess Result", 2); // Updated heading
+
+        // Display whether the guess was correct and the actual correct count
+        cout << generate_html::generate_result_message(correct, guessed_pattern, guessed_occurrence, actual_occurrence_count);
+
+        // Removed calls to generate_character_counts as it's not part of the core game result display
     }
+
     // Output the closing HTML tags
     cout << generate_html::generate_html_footer();
 
