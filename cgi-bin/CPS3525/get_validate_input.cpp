@@ -14,6 +14,7 @@
 using namespace std;
 using namespace cgicc;
 
+// Trims leading and trailing whitespace from a string
 string get_validate_input::trim(const string& str) {
     const char* whitespace = " \t\n\r\f\v";
     size_t first = str.find_first_not_of(whitespace);
@@ -24,6 +25,7 @@ string get_validate_input::trim(const string& str) {
     return str.substr(first, (last - first + 1));
 }
 
+// Checks if a string contains only uppercase letters
 bool get_validate_input::is_uppercase(const string& str) {
     if (str.empty()) {
         return false;
@@ -36,11 +38,13 @@ bool get_validate_input::is_uppercase(const string& str) {
     return true;
 }
 
+// Extracts and validates form data including the guessed character, guess type, and uploaded pattern file
 bool get_validate_input::get_form_data(vector<string>& pattern, string& guess, string& type) {
     try {
 
-        Cgicc cgi;
+        Cgicc cgi; // Create CGI object to access form data
 
+        // Retrieve the "guess_char" field from the form
         const_form_iterator guess_iter = cgi.getElement("guess_char");
         if (guess_iter == cgi.getElements().end() || guess_iter->getValue().empty()) {
             cout << "Error: Form field 'guess_char' not found or empty." << endl;
@@ -48,45 +52,46 @@ bool get_validate_input::get_form_data(vector<string>& pattern, string& guess, s
         }
         guess = guess_iter->getValue();
 
+        // Validate that the guess is a single uppercase letter
         if (guess.length() != 1 || !is_uppercase(guess)) {
             cout << "Error: Invalid guess character submitted: '" << guess << "'. Expected single uppercase letter." << endl;
             return false;
         }
 
+         // Retrieve the "guess_type" field from the form
         const_form_iterator type_iter = cgi.getElement("guess_type");
         if (type_iter == cgi.getElements().end() || type_iter->getValue().empty()) {
             cout << "Error: Form field 'guess_type' not found or empty." << endl;
             return false;
         }
         type = type_iter->getValue();
-
+        
+         // Validate that the guess type is either "maximum" or "minimum"
         if (type != "maximum" && type != "minimum") {
             cout << "Error: Invalid guess type submitted: '" << type << "'. Expected 'maximum' or 'minimum'." << endl;
             return false;
         }
-
+        // Access the uploaded file from the form
         file_iterator fileIter = cgi.getFile("pattern_file");
-
-
         if (fileIter == cgi.getFiles().end()) {
             cout << "Error: File input field 'pattern_file' not found in the submitted form data." << endl;
             return false;
         }
 
         const FormFile& fileRef = *fileIter;
-
+         // Check if the uploaded file is empty
         if (fileRef.getDataLength() == 0) {
             cout << "Error: Uploaded file 'pattern_file' is empty." << endl;
             return false;
         }
-
+        // Read the file contents into a string stream
         stringstream ss_file_content(fileRef.getData());
         string line;
 
         size_t rows = 0;
         size_t cols = 0;
 
-
+        // Read the first line which should contain the dimensions (rows and columns)
         if (getline(ss_file_content, line)) {
             stringstream ss_dims(line);
             if (!(ss_dims >> rows >> cols) || rows == 0 || cols == 0) {
@@ -100,12 +105,12 @@ bool get_validate_input::get_form_data(vector<string>& pattern, string& guess, s
 
         pattern.clear();
         size_t actual_rows_read = 0;
-
+        // Read and validate each line of the pattern data
         while (getline(ss_file_content, line)) {
             string trimmed_line = trim(line);
 
             if (!trimmed_line.empty()) {
-
+            // Each line must have the correct number of columns and be uppercase
                 if (trimmed_line.length() == cols && is_uppercase(trimmed_line)) {
                     pattern.push_back(trimmed_line);
                     actual_rows_read++;
@@ -115,20 +120,22 @@ bool get_validate_input::get_form_data(vector<string>& pattern, string& guess, s
                 }
             }
         }
-
+         // Ensure the number of valid rows read matches the expected number
         if (actual_rows_read != rows) {
             cout << "Error: Number of valid pattern rows read (" << actual_rows_read
                  << ") does not match the expected number of rows (" << rows
                  << ") specified in the first line." << endl;
             return false;
         }
-
+        // All validations passed
         return true;
 
     } catch (const exception& e) {
+        // Catch and print any standard exceptions
         cout << "Exception caught during form data processing: " << e.what() << endl;
         return false;
     } catch (...) {
+        // Catch any unknown exceptions
         cout << "Unknown exception caught during form data processing." << endl;
         return false;
     }

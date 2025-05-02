@@ -56,7 +56,7 @@ string generate_html::generate_pattern_table(const vector<string>& pattern) {
     for (const auto& row : pattern) {
         table += "<tr>\n";
         for (char c : row) {
-            table += "<td>" + string(1, c) + "</td>\n";
+            table += "<td>" + string(1, c) + "</td>\n";    // Each character in its own cell
         }
         table += "</tr>\n";
     }
