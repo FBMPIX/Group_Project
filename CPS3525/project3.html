@@ -77,30 +77,36 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Pattern Guessing Game</h1>
-        <form action="../cgi-bin/project3" method="post" enctype="multipart/form-data">
-            <div>
-                <label for="pattern_file">Upload Pattern File:</label>
-                <input type="file" id="pattern_file" name="pattern_file" required>
-            </div>
+<div class="container">
+    <h1>Pattern Guessing Game</h1>
+    <form action="../cgi-bin/project3" method="post" enctype="multipart/form-data">
+        <div>
+            <label for="pattern_file">Upload Pattern File:</label>
+            <input type="file" id="pattern_file" name="pattern_file" required>
+        </div>
 
-            <div>
-                <label for="guess_char">Guess the Character (A-Z):</label>
-                <input type="text" id="guess_char" name="guess_char" maxlength="1" pattern="[A-Z]" title="Enter a single uppercase letter" required>
-            </div>
+        <div>
+            <label for="guess_pattern">Guess the Pattern:</label>
+            <input type="text" id="guess_pattern" name="guess_pattern" title="Enter the pattern to guess" required>
+        </div>
 
-            <div>
-                <label for="guess_type">Guessing for:</label>
-                <select id="guess_type" name="guess_type" required>
-                    <option value="">Select...</option>
-                    <option value="maximum">Maximum Count</option>
-                    <option value="minimum">Minimum Count</option>
-                </select>
-            </div>
+        <div>
+            <label for="guess_type">Guessing for:</label>
+            <select id="guess_type" name="guess_type" required>
+                <option value="">Select...</option>
+                <option value="maximum">Maximum Count</option>
+                <option value="minimum">Minimum Count</option>
+            </select>
+        </div>
 
-            <button type="submit">Submit Guess</button>
-        </form>
-    </div>
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="conversion" value="convert"> convert to numbers
+            </label>
+        </div>
+
+        <button type="submit">Submit Guess</button>
+    </form>
+</div>
 </body>
 </html>
