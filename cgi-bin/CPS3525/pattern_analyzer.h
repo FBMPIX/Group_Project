@@ -27,7 +27,6 @@ namespace pattern_analyzer {
         }
     };
     int count_pattern_occurrences(const vector<string>& grid, const string& pattern);
-    vector<string> generate_numbered_grid(const vector<string>& grid, const string& pattern);
     vector<PatternLocation> find_horizontal_locations(const vector<string>& grid, const string& pattern);
     vector<PatternLocation> find_vertical_locations(const vector<string>& grid, const string& pattern);
 
