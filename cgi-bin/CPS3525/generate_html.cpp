@@ -1,7 +1,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
-// #include <map> // Removed map include as generate_character_counts is removed
+#include <map> // Included for potential future use or compatibility.
+#include <algorithm>
+#include <utility> // For std::pair
+#include "pattern_analyzer.h"
 #include "generate_html.h" // Assuming this header declares the generate_html class and its functions
 
 using namespace std;
