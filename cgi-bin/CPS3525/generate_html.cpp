@@ -97,7 +97,7 @@ string generate_html::generate_result_message(bool correct, const string& guesse
 
 
 // Generates a grid with overlapping and non-sharing pattern occurrences replaced by numbers
-vector<string> pattern_analyzer::generate_numbered_grid(const vector<string>& grid, const string& pattern) {
+vector<string> generate_html::generate_numbered_grid(const vector<string>& grid, const string& pattern) {
     vector<string> numbered_grid = grid; // Create a copy of the original grid
 
     if (pattern.empty() || grid.empty() || grid[0].empty()) {
