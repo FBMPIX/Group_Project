@@ -54,7 +54,7 @@ int main() {
         // If convertToNumber is true, generate and display the numbered grid
         if (convertToNumber) {
             // Generate the grid with occurrences replaced by numbers using the new function
-            vector<string> numbered_grid = pattern_analyzer::generate_numbered_grid(pattern_grid_content, guessed_pattern);
+            vector<string> numbered_grid = generate_html::generate_numbered_grid(pattern_grid_content, guessed_pattern);
             // Display the numbered grid
             cout << generate_html::generate_paragraph("Pattern Grid with Occurrences Numbered:"); // Add label for the numbered grid
             cout << generate_html::generate_pattern_table(numbered_grid);
