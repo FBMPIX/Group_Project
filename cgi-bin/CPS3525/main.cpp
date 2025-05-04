@@ -21,7 +21,7 @@ int main() {
     cout << "Content-Type: text/html\r\n\r\n";
 
     // Output the beginning of the HTML document with a page title
-    cout << generate_html::generate_html_header("Word Search Game Result"); // Updated title
+    cout << generate_html::generate_html_header("Pattern Search Game Result"); // Updated title
 
     // Variables to store extracted form and file data
     vector<string> pattern_grid_content; // Stores the original pattern grid from the file
@@ -61,7 +61,7 @@ int main() {
         }
 
         // Show analysis and the user's guess result
-        cout << generate_html::generate_heading("Word Search Analysis and Guess Result", 2); // Updated heading
+        cout << generate_html::generate_heading("Pattern Search Analysis and Guess Result", 2); // Updated heading
 
         // Display whether the guess was correct and the actual correct count
         cout << generate_html::generate_result_message(correct, guessed_pattern, guessed_occurrence, actual_occurrence_count);
