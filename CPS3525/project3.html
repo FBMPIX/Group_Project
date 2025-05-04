@@ -95,9 +95,13 @@
             <input type="number" id="guess_occurrences" name="guess_occurrences" title="Enter the number of occurrences to guess" required min="0">
         </div>
 
-        <div class="radio-group">
+        <div>
+            <label>Convert the pattern to numbers?</label>
             <label>
-                <input type="checkbox" name="conversion" value="convert"> convert to numbers
+                <input type="radio" name="conversion" value="convert" checked> Yes
+            </label>
+            <label>
+                <input type="radio" name="conversion" value="no_convert"> No
             </label>
         </div>
 
