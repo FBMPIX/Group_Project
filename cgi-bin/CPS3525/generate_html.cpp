@@ -150,11 +150,10 @@ vector<string> pattern_analyzer::generate_numbered_grid(const vector<string>& gr
             char rep_char;
             if (occurrence_counter > 0 && occurrence_counter <= 9) {
                 rep_char = '0' + occurrence_counter;
-            } else if (occurrence_counter >= 10 && occurrence_counter <= 10 + ('Z' - 'A')) {
-                rep_char = 'A' + (occurrence_counter - 10);
             } else {
-                 // If more than 36 occurrences, use a placeholder or handle as an error.
-                 rep_char = '*';
+                // If more than 9 occurances, simply resents back to one
+                occurrence_counter = 1;
+                rep_char = '0' + occurrence_counter;
             }
 
             // Perform the replacement in the numbered_grid copy and mark cells as occupied
