@@ -1,2 +1,2 @@
 # This repository houses the files and resources for our CPS3525 group project. 
-- Please review the [Lecture 19](https://kean0-my.sharepoint.com/personal/chuang_kean_edu/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fchuang%5Fkean%5Fedu%2FDocuments%2F2025S%5FCPS3525%2FSlides%2FCPS3525%5Fday19%5FGit%5Fteam%5Fproject%2Epdf&parent=%2Fpersonal%2Fchuang%5Fkean%5Fedu%2FDocuments%2F2025S%5FCPS3525%2FSlides)  slides to get a basic understanding of Git usage. 
+- Please review the Lecture 19  slides to get a basic understanding of Git usage. 
